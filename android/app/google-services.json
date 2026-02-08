@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "698707570038",
+    "project_id": "lostandback-27562",
+    "storage_bucket": "lostandback-27562.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:698707570038:android:93267fbeb2e49aea4bde57",
+        "android_client_info": {
+          "package_name": "com.example.lostandback"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlecsAAakUuv9qss_Ovvx30iGwe5Qhr3o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
