@@ -1,9 +1,8 @@
 // lib/views/auth/forgot_password_screen.dart
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
-import '../../viewmodel/auth_view_model.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({Key? key}) : super(key: key);
@@ -15,7 +14,11 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
+  final _auth = FirebaseAuth.instance;
+
+  bool _isLoading = false;
   bool _emailSent = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -24,20 +27,96 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _handleResetPassword() async {
+    // Clear previous errors
+    setState(() {
+      _errorMessage = null;
+    });
+
+    // Validate form
     if (!_formKey.currentState!.validate()) return;
 
-    final viewModel = context.read<AuthViewModel>();
-    final success = await viewModel.resetPassword(_emailController.text.trim());
+    setState(() => _isLoading = true);
 
-    if (success && mounted) {
-      setState(() => _emailSent = true);
+    try {
+      final email = _emailController.text.trim();
+
+      print('🔄 Attempting to send password reset email to: $email');
+
+      // Send password reset email directly
+      await _auth.sendPasswordResetEmail(email: email);
+
+      print('✅ Password reset email sent successfully!');
+      print('📧 Check your email (including spam folder)');
+
+      // Show success
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _emailSent = true;
+        });
+
+        // Also show a snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Password reset email sent! Check your inbox.',
+                    style: GoogleFonts.poppins(),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      print('❌ Firebase Auth Error: ${e.code}');
+      print('   Message: ${e.message}');
+
+      String errorMsg;
+      switch (e.code) {
+        case 'invalid-email':
+          errorMsg = 'Invalid email address format';
+          break;
+        case 'user-not-found':
+          errorMsg = 'No account found with this email';
+          break;
+        case 'user-disabled':
+          errorMsg = 'This account has been disabled';
+          break;
+        case 'too-many-requests':
+          errorMsg = 'Too many attempts. Please try again later';
+          break;
+        default:
+          errorMsg = 'Failed to send reset email. Please try again';
+      }
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = errorMsg;
+        });
+      }
+    } catch (e) {
+      print('❌ Unexpected error: $e');
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'An unexpected error occurred';
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<AuthViewModel>();
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -53,7 +132,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   children: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_rounded,
+                          color: Colors.white),
                     ),
                   ],
                 ),
@@ -146,7 +226,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   TextFormField(
                                     controller: _emailController,
                                     keyboardType: TextInputType.emailAddress,
-                                    enabled: !viewModel.isLoading,
+                                    enabled: !_isLoading,
                                     style: GoogleFonts.poppins(),
                                     decoration: InputDecoration(
                                       hintText: 'Enter your email',
@@ -162,8 +242,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
-                                        borderSide:
-                                        BorderSide(color: Colors.grey.shade200),
+                                        borderSide: BorderSide(
+                                            color: Colors.grey.shade200),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
@@ -172,8 +252,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       ),
                                       errorBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
-                                        borderSide:
-                                        const BorderSide(color: AppColors.error),
+                                        borderSide: const BorderSide(
+                                            color: AppColors.error),
                                       ),
                                       contentPadding: const EdgeInsets.symmetric(
                                           horizontal: 16, vertical: 16),
@@ -191,7 +271,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   ),
 
                                   // Error Message
-                                  if (viewModel.errorMessage != null) ...[
+                                  if (_errorMessage != null) ...[
                                     const SizedBox(height: 16),
                                     Container(
                                       padding: const EdgeInsets.all(12),
@@ -206,7 +286,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
-                                              viewModel.errorMessage!,
+                                              _errorMessage!,
                                               style: GoogleFonts.poppins(
                                                 color: AppColors.error,
                                                 fontSize: 12,
@@ -224,9 +304,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   SizedBox(
                                     height: 56,
                                     child: ElevatedButton(
-                                      onPressed: viewModel.isLoading
-                                          ? null
-                                          : _handleResetPassword,
+                                      onPressed: _isLoading ? null : _handleResetPassword,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.primary,
                                         shape: RoundedRectangleBorder(
@@ -234,7 +312,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                         ),
                                         elevation: 0,
                                       ),
-                                      child: viewModel.isLoading
+                                      child: _isLoading
                                           ? const SizedBox(
                                         height: 24,
                                         width: 24,
@@ -295,10 +373,72 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   style: GoogleFonts.poppins(
                                     fontSize: 14,
                                     color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
+                                const SizedBox(height: 16),
+
+                                // Important Instructions
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.warning.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: AppColors.warning.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.info_outline,
+                                              color: AppColors.warning, size: 18),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Important!',
+                                            style: GoogleFonts.poppins(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                              color: AppColors.warning,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '• Check your spam/junk folder\n'
+                                            '• Email may take 2-5 minutes\n'
+                                            '• Link expires in 1 hour',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11,
+                                          color: AppColors.textSecondary,
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 const SizedBox(height: 24),
+
+                                // Resend Button
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() => _emailSent = false);
+                                  },
+                                  child: Text(
+                                    'Resend Email',
+                                    style: GoogleFonts.poppins(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+
+                                // Back to Login Button
                                 SizedBox(
                                   width: double.infinity,
                                   height: 56,
