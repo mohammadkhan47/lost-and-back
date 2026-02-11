@@ -414,6 +414,398 @@
 // }
 
 // lib/views/auth/login_screen.dart
+// import 'package:flutter/material.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:provider/provider.dart';
+// import '../../utils/colors.dart';
+// import '../../viewmodel/auth_view_model.dart';
+//
+// class LoginScreen extends StatefulWidget {
+//   const LoginScreen({Key? key}) : super(key: key);
+//
+//   @override
+//   State<LoginScreen> createState() => _LoginScreenState();
+// }
+//
+// class _LoginScreenState extends State<LoginScreen> {
+//   final _formKey = GlobalKey<FormState>();
+//   final _emailController = TextEditingController();
+//   final _passwordController = TextEditingController();
+//   final _emailFocus = FocusNode();
+//   final _passwordFocus = FocusNode();
+//
+//   @override
+//   void dispose() {
+//     _emailController.dispose();
+//     _passwordController.dispose();
+//     _emailFocus.dispose();
+//     _passwordFocus.dispose();
+//     super.dispose();
+//   }
+//
+//   Future<void> _handleLogin() async {
+//     if (!_formKey.currentState!.validate()) return;
+//
+//     final viewModel = context.read<AuthViewModel>();
+//     final success = await viewModel.login(
+//       _emailController.text.trim(),
+//       _passwordController.text,
+//     );
+//
+//     if (success && mounted) {
+//       Navigator.pushReplacementNamed(context, '/home');
+//     }
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final size = MediaQuery.of(context).size;
+//     final viewModel = context.watch<AuthViewModel>();
+//
+//     return Scaffold(
+//       body: Container(
+//         decoration: const BoxDecoration(
+//           gradient: AppColors.primaryGradient,
+//         ),
+//         child: SafeArea(
+//           child: Center(
+//             child: SingleChildScrollView(
+//               padding: const EdgeInsets.all(24),
+//               child: Column(
+//                 mainAxisAlignment: MainAxisAlignment.center,
+//                 children: [
+//                   // Logo
+//                   _buildLogo(),
+//                   const SizedBox(height: 40),
+//
+//                   // Welcome Text
+//                   Text(
+//                     'Welcome Back!',
+//                     style: GoogleFonts.poppins(
+//                       fontSize: 32,
+//                       fontWeight: FontWeight.bold,
+//                       color: Colors.white,
+//                     ),
+//                   ),
+//                   const SizedBox(height: 8),
+//                   Text(
+//                     'Sign in to continue',
+//                     style: GoogleFonts.poppins(
+//                       fontSize: 16,
+//                       color: Colors.white.withOpacity(0.8),
+//                     ),
+//                   ),
+//                   const SizedBox(height: 40),
+//
+//                   // Login Form Card
+//                   Container(
+//                     padding: const EdgeInsets.all(24),
+//                     decoration: BoxDecoration(
+//                       color: Colors.white,
+//                       borderRadius: BorderRadius.circular(24),
+//                       boxShadow: [
+//                         BoxShadow(
+//                           color: Colors.black.withOpacity(0.1),
+//                           blurRadius: 20,
+//                           offset: const Offset(0, 10),
+//                         ),
+//                       ],
+//                     ),
+//                     child: Form(
+//                       key: _formKey,
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.stretch,
+//                         children: [
+//                           // Email Field
+//                           _buildLabel('Email'),
+//                           const SizedBox(height: 8),
+//                           _buildEmailField(viewModel),
+//                           const SizedBox(height: 20),
+//
+//                           // Password Field
+//                           _buildLabel('Password'),
+//                           const SizedBox(height: 8),
+//                           _buildPasswordField(viewModel),
+//                           const SizedBox(height: 12),
+//
+//                           // Forgot Password
+//                           Align(
+//                             alignment: Alignment.centerRight,
+//                             child: TextButton(
+//                               onPressed: () {
+//                                 Navigator.pushNamed(context, '/forgot_password');
+//                               },
+//                               child: Text(
+//                                 'Forgot Password?',
+//                                 style: GoogleFonts.poppins(
+//                                   color: AppColors.primary,
+//                                   fontWeight: FontWeight.w600,
+//                                 ),
+//                               ),
+//                             ),
+//                           ),
+//
+//                           // Error Message
+//                           if (viewModel.errorMessage != null) ...[
+//                             const SizedBox(height: 12),
+//                             Container(
+//                               padding: const EdgeInsets.all(12),
+//                               decoration: BoxDecoration(
+//                                 color: AppColors.error.withOpacity(0.1),
+//                                 borderRadius: BorderRadius.circular(8),
+//                               ),
+//                               child: Row(
+//                                 children: [
+//                                   const Icon(Icons.error_outline,
+//                                       color: AppColors.error, size: 20),
+//                                   const SizedBox(width: 8),
+//                                   Expanded(
+//                                     child: Text(
+//                                       viewModel.errorMessage!,
+//                                       style: GoogleFonts.poppins(
+//                                         color: AppColors.error,
+//                                         fontSize: 12,
+//                                       ),
+//                                     ),
+//                                   ),
+//                                 ],
+//                               ),
+//                             ),
+//                           ],
+//
+//                           const SizedBox(height: 24),
+//
+//                           // Login Button
+//                           _buildLoginButton(viewModel),
+//                           const SizedBox(height: 20),
+//
+//                           // Divider
+//                           Row(
+//                             children: [
+//                               const Expanded(child: Divider()),
+//                               Padding(
+//                                 padding: const EdgeInsets.symmetric(horizontal: 16),
+//                                 child: Text(
+//                                   'OR',
+//                                   style: GoogleFonts.poppins(
+//                                     color: AppColors.textSecondary,
+//                                     fontSize: 12,
+//                                   ),
+//                                 ),
+//                               ),
+//                               const Expanded(child: Divider()),
+//                             ],
+//                           ),
+//                           const SizedBox(height: 20),
+//
+//                           // Sign Up Link
+//                           Row(
+//                             mainAxisAlignment: MainAxisAlignment.center,
+//                             children: [
+//                               Text(
+//                                 "Don't have an account? ",
+//                                 style: GoogleFonts.poppins(
+//                                   color: AppColors.textSecondary,
+//                                 ),
+//                               ),
+//                               GestureDetector(
+//                                 onTap: () {
+//                                   Navigator.pushNamed(context, '/register');
+//                                 },
+//                                 child: Text(
+//                                   'Sign Up',
+//                                   style: GoogleFonts.poppins(
+//                                     color: AppColors.primary,
+//                                     fontWeight: FontWeight.bold,
+//                                   ),
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+//
+//   Widget _buildLogo() {
+//     return Container(
+//       width: 100,
+//       height: 100,
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         borderRadius: BorderRadius.circular(20),
+//         boxShadow: [
+//           BoxShadow(
+//             color: Colors.black.withOpacity(0.1),
+//             blurRadius: 20,
+//             offset: const Offset(0, 10),
+//           ),
+//         ],
+//       ),
+//       child: const Icon(
+//         Icons.find_in_page_rounded,
+//         size: 50,
+//         color: AppColors.primary,
+//       ),
+//     );
+//   }
+//
+//   Widget _buildLabel(String text) {
+//     return Text(
+//       text,
+//       style: GoogleFonts.poppins(
+//         fontSize: 14,
+//         fontWeight: FontWeight.w600,
+//         color: AppColors.textPrimary,
+//       ),
+//     );
+//   }
+//
+//   Widget _buildEmailField(AuthViewModel viewModel) {
+//     return TextFormField(
+//       controller: _emailController,
+//       focusNode: _emailFocus,
+//       keyboardType: TextInputType.emailAddress,
+//       textInputAction: TextInputAction.next,
+//       enabled: !viewModel.isLoading,
+//       style: GoogleFonts.poppins(),
+//       decoration: InputDecoration(
+//         hintText: 'Enter your email',
+//         hintStyle: GoogleFonts.poppins(color: AppColors.textLight),
+//         prefixIcon: const Icon(Icons.email_rounded, color: AppColors.primary),
+//         filled: true,
+//         fillColor: AppColors.background,
+//         border: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(12),
+//           borderSide: BorderSide.none,
+//         ),
+//         enabledBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(12),
+//           borderSide: BorderSide(color: Colors.grey.shade200),
+//         ),
+//         focusedBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(12),
+//           borderSide: const BorderSide(color: AppColors.primary, width: 2),
+//         ),
+//         errorBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(12),
+//           borderSide: const BorderSide(color: AppColors.error),
+//         ),
+//         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+//       ),
+//       validator: (value) {
+//         if (value == null || value.isEmpty) {
+//           return 'Please enter your email';
+//         }
+//         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+//           return 'Please enter a valid email';
+//         }
+//         return null;
+//       },
+//       onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+//     );
+//   }
+//
+//   Widget _buildPasswordField(AuthViewModel viewModel) {
+//     return TextFormField(
+//       controller: _passwordController,
+//       focusNode: _passwordFocus,
+//       obscureText: viewModel.obscurePassword,
+//       textInputAction: TextInputAction.done,
+//       enabled: !viewModel.isLoading,
+//       style: GoogleFonts.poppins(),
+//       decoration: InputDecoration(
+//         hintText: 'Enter your password',
+//         hintStyle: GoogleFonts.poppins(color: AppColors.textLight),
+//         prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.primary),
+//         suffixIcon: IconButton(
+//           icon: Icon(
+//             viewModel.obscurePassword
+//                 ? Icons.visibility_off_rounded
+//                 : Icons.visibility_rounded,
+//             color: AppColors.textSecondary,
+//           ),
+//           onPressed: viewModel.togglePasswordVisibility,
+//         ),
+//         filled: true,
+//         fillColor: AppColors.background,
+//         border: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(12),
+//           borderSide: BorderSide.none,
+//         ),
+//         enabledBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(12),
+//           borderSide: BorderSide(color: Colors.grey.shade200),
+//         ),
+//         focusedBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(12),
+//           borderSide: const BorderSide(color: AppColors.primary, width: 2),
+//         ),
+//         errorBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(12),
+//           borderSide: const BorderSide(color: AppColors.error),
+//         ),
+//         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+//       ),
+//       validator: (value) {
+//         if (value == null || value.isEmpty) {
+//           return 'Please enter your password';
+//         }
+//         if (value.length < 6) {
+//           return 'Password must be at least 6 characters';
+//         }
+//         return null;
+//       },
+//       onFieldSubmitted: (_) => _handleLogin(),
+//     );
+//   }
+//
+//   Widget _buildLoginButton(AuthViewModel viewModel) {
+//     return SizedBox(
+//       height: 56,
+//       child: ElevatedButton(
+//         onPressed: viewModel.isLoading ? null : _handleLogin,
+//         style: ElevatedButton.styleFrom(
+//           backgroundColor: AppColors.primary,
+//           shape: RoundedRectangleBorder(
+//             borderRadius: BorderRadius.circular(12),
+//           ),
+//           elevation: 0,
+//         ),
+//         child: viewModel.isLoading
+//             ? const SizedBox(
+//           height: 24,
+//           width: 24,
+//           child: CircularProgressIndicator(
+//             color: Colors.white,
+//             strokeWidth: 2,
+//           ),
+//         )
+//             : Text(
+//           'Sign In',
+//           style: GoogleFonts.poppins(
+//             fontSize: 16,
+//             fontWeight: FontWeight.w600,
+//             color: Colors.white,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
+
+
+// lib/view/auth/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -431,15 +823,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _emailFocus = FocusNode();
-  final _passwordFocus = FocusNode();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _emailFocus.dispose();
-    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -449,8 +837,17 @@ class _LoginScreenState extends State<LoginScreen> {
     final viewModel = context.read<AuthViewModel>();
     final success = await viewModel.login(
       _emailController.text.trim(),
-      _passwordController.text,
+      _passwordController.text.trim(),
     );
+
+    if (success && mounted) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    final viewModel = context.read<AuthViewModel>();
+    final success = await viewModel.signInWithGoogle();
 
     if (success && mounted) {
       Navigator.pushReplacementNamed(context, '/home');
@@ -459,7 +856,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final viewModel = context.watch<AuthViewModel>();
 
     return Scaffold(
@@ -471,62 +867,166 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo
-                  _buildLogo(),
-                  const SizedBox(height: 40),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo/Icon
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.find_in_page_rounded,
+                        size: 50,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
 
-                  // Welcome Text
-                  Text(
-                    'Welcome Back!',
-                    style: GoogleFonts.poppins(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    // Title
+                    Text(
+                      'Welcome Back!',
+                      style: GoogleFonts.poppins(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Sign in to continue',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                    const SizedBox(height: 8),
 
-                  // Login Form Card
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
+                    // Subtitle
+                    Text(
+                      'Sign in to continue',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
                     ),
-                    child: Form(
-                      key: _formKey,
+                    const SizedBox(height: 40),
+
+                    // Login Form Card
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // Email Field
-                          _buildLabel('Email'),
-                          const SizedBox(height: 8),
-                          _buildEmailField(viewModel),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            enabled: !viewModel.isLoading,
+                            style: GoogleFonts.poppins(),
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              labelStyle: GoogleFonts.poppins(),
+                              hintText: 'Enter your email',
+                              hintStyle: GoogleFonts.poppins(
+                                  color: AppColors.textLight),
+                              prefixIcon: const Icon(Icons.email_rounded,
+                                  color: AppColors.primary),
+                              filled: true,
+                              fillColor: AppColors.background,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                    color: AppColors.primary, width: 2),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                  .hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
                           const SizedBox(height: 20),
 
                           // Password Field
-                          _buildLabel('Password'),
-                          const SizedBox(height: 8),
-                          _buildPasswordField(viewModel),
-                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: viewModel.obscurePassword,
+                            enabled: !viewModel.isLoading,
+                            style: GoogleFonts.poppins(),
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              labelStyle: GoogleFonts.poppins(),
+                              hintText: 'Enter your password',
+                              hintStyle: GoogleFonts.poppins(
+                                  color: AppColors.textLight),
+                              prefixIcon: const Icon(Icons.lock_rounded,
+                                  color: AppColors.primary),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  viewModel.obscurePassword
+                                      ? Icons.visibility_off_rounded
+                                      : Icons.visibility_rounded,
+                                  color: AppColors.textSecondary,
+                                ),
+                                onPressed: viewModel.togglePasswordVisibility,
+                              ),
+                              filled: true,
+                              fillColor: AppColors.background,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                    color: AppColors.primary, width: 2),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                          ),
 
                           // Forgot Password
                           Align(
@@ -538,6 +1038,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Text(
                                 'Forgot Password?',
                                 style: GoogleFonts.poppins(
+                                  fontSize: 14,
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -547,7 +1048,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           // Error Message
                           if (viewModel.errorMessage != null) ...[
-                            const SizedBox(height: 12),
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
@@ -571,230 +1071,150 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ],
                               ),
                             ),
+                            const SizedBox(height: 16),
                           ],
 
-                          const SizedBox(height: 24),
-
                           // Login Button
-                          _buildLoginButton(viewModel),
-                          const SizedBox(height: 20),
-
-                          // Divider
-                          Row(
-                            children: [
-                              const Expanded(child: Divider()),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  'OR',
-                                  style: GoogleFonts.poppins(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12,
-                                  ),
+                          SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed:
+                              viewModel.isLoading ? null : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
+                                elevation: 0,
                               ),
-                              const Expanded(child: Divider()),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Sign Up Link
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Don't have an account? ",
+                              child: viewModel.isLoading
+                                  ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                                  : Text(
+                                'Sign In',
                                 style: GoogleFonts.poppins(
-                                  color: AppColors.textSecondary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/register');
-                                },
-                                child: Text(
-                                  'Sign Up',
-                                  style: GoogleFonts.poppins(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          // Divider with "OR"
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Divider(
+                                    color: Colors.grey.shade300,
+                                    thickness: 1,
                                   ),
                                 ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  child: Text(
+                                    'OR',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Divider(
+                                    color: Colors.grey.shade300,
+                                    thickness: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Google Sign-In Button
+                          SizedBox(
+                            height: 56,
+                            child: OutlinedButton.icon(
+                              onPressed: viewModel.isLoading
+                                  ? null
+                                  : _handleGoogleSignIn,
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Colors.grey.shade300),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
-                            ],
+                              icon: viewModel.isLoading
+                                  ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                                  : Image.asset(
+                                'assets/images/google.png',
+                                height: 24,
+                                width: 24,
+                                // If you don't have the Google logo asset, use this instead:
+                                // errorBuilder: (context, error, stackTrace) =>
+                                //     Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
+                              ),
+                              label: Text(
+                                'Continue with Google',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 24),
+
+                    // Sign Up Link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Don't have an account? ",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/register');
+                          },
+                          child: Text(
+                            'Sign Up',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogo() {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: const Icon(
-        Icons.find_in_page_rounded,
-        size: 50,
-        color: AppColors.primary,
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.poppins(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
-
-  Widget _buildEmailField(AuthViewModel viewModel) {
-    return TextFormField(
-      controller: _emailController,
-      focusNode: _emailFocus,
-      keyboardType: TextInputType.emailAddress,
-      textInputAction: TextInputAction.next,
-      enabled: !viewModel.isLoading,
-      style: GoogleFonts.poppins(),
-      decoration: InputDecoration(
-        hintText: 'Enter your email',
-        hintStyle: GoogleFonts.poppins(color: AppColors.textLight),
-        prefixIcon: const Icon(Icons.email_rounded, color: AppColors.primary),
-        filled: true,
-        fillColor: AppColors.background,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your email';
-        }
-        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-          return 'Please enter a valid email';
-        }
-        return null;
-      },
-      onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
-    );
-  }
-
-  Widget _buildPasswordField(AuthViewModel viewModel) {
-    return TextFormField(
-      controller: _passwordController,
-      focusNode: _passwordFocus,
-      obscureText: viewModel.obscurePassword,
-      textInputAction: TextInputAction.done,
-      enabled: !viewModel.isLoading,
-      style: GoogleFonts.poppins(),
-      decoration: InputDecoration(
-        hintText: 'Enter your password',
-        hintStyle: GoogleFonts.poppins(color: AppColors.textLight),
-        prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.primary),
-        suffixIcon: IconButton(
-          icon: Icon(
-            viewModel.obscurePassword
-                ? Icons.visibility_off_rounded
-                : Icons.visibility_rounded,
-            color: AppColors.textSecondary,
-          ),
-          onPressed: viewModel.togglePasswordVisibility,
-        ),
-        filled: true,
-        fillColor: AppColors.background,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter your password';
-        }
-        if (value.length < 6) {
-          return 'Password must be at least 6 characters';
-        }
-        return null;
-      },
-      onFieldSubmitted: (_) => _handleLogin(),
-    );
-  }
-
-  Widget _buildLoginButton(AuthViewModel viewModel) {
-    return SizedBox(
-      height: 56,
-      child: ElevatedButton(
-        onPressed: viewModel.isLoading ? null : _handleLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: viewModel.isLoading
-            ? const SizedBox(
-          height: 24,
-          width: 24,
-          child: CircularProgressIndicator(
-            color: Colors.white,
-            strokeWidth: 2,
-          ),
-        )
-            : Text(
-          'Sign In',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
           ),
         ),
       ),

@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "698707570038",
+    "project_id": "lostandback-27562",
+    "storage_bucket": "lostandback-27562.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:698707570038:android:93267fbeb2e49aea4bde57",
+        "android_client_info": {
+          "package_name": "com.example.lostandback"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "698707570038-b42aqg93i2h03meufl5rb8qt58e24sga.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.lostandback",
+            "certificate_hash": "c037396163eeb505a099d09190517cbeb18a09d9"
+          }
+        },
+        {
+          "client_id": "698707570038-5mbefuhn73med3pmqs5h73ioqp79bv03.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlecsAAakUuv9qss_Ovvx30iGwe5Qhr3o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "698707570038-5mbefuhn73med3pmqs5h73ioqp79bv03.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "698707570038-cdgvj7v7tj6rks68g0r76l5p2v8gn4nn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.lostandback"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
