@@ -6,8 +6,6 @@ import 'package:provider/provider.dart';
 import '../../utils/colors.dart';
 import '../../services/auth_services.dart';
 import '../../model/user_model.dart';
-import '../../model/lost_items_model.dart';
-import '../../model/found_item_model.dart';
 import '../../viewmodel/lost_item_viewmodel.dart';
 import '../../viewmodel/found_item_viewmodel.dart';
 
@@ -32,9 +30,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final user = _authService.currentUser;
     if (user != null) {
       final userData = await _authService.getUserData(user.uid);
-      setState(() {
-        _currentUser = userData;
-      });
+      if (mounted) {
+        setState(() {
+          _currentUser = userData;
+        });
+      }
+    }
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good Morning';
+    } else if (hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
+  }
+
+  Future<void> _refreshData() async {
+    await _loadUserData();
+
+    if (mounted) {
+      // Trigger refresh for ViewModels if they have refresh methods
+      // Otherwise they auto-refresh via their streams
     }
   }
 
@@ -44,21 +64,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final foundItemViewModel = context.watch<FoundItemViewModel>();
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: () async {
-            await _loadUserData();
-          },
+          onRefresh: _refreshData,
           child: CustomScrollView(
             slivers: [
-              // Header
+              // Header with greeting
               SliverToBoxAdapter(
                 child: _buildHeader(),
               ),
 
               // Quick Stats
               SliverToBoxAdapter(
-                child: _buildQuickStats(),
+                child: _buildQuickStats(
+                  lostItemViewModel,
+                  foundItemViewModel,
+                ),
               ),
 
               // Quick Actions
@@ -66,81 +88,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: _buildQuickActions(),
               ),
 
-              // Recent Lost Items Section
+              // Recent Activity Section
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Recent Lost Items',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Navigate to lost items list
-                        },
-                        child: Text(
-                          'See All',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    'Recent Activity',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ),
 
-              // Recent Lost Items List
+              // Recent Lost Items
               SliverToBoxAdapter(
-                child: _buildRecentLostItems(lostItemViewModel.lostItems),
+                child: _buildRecentLostItems(lostItemViewModel),
               ),
 
-              // Recent Found Items Section
+              // Recent Found Items
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Recent Found Items',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Navigate to found items list
-                        },
-                        child: Text(
-                          'See All',
-                          style: GoogleFonts.poppins(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                child: _buildRecentFoundItems(foundItemViewModel),
               ),
 
-              // Recent Found Items List
-              SliverToBoxAdapter(
-                child: _buildRecentFoundItems(foundItemViewModel.foundItems),
-              ),
-
-              // Bottom Padding
+              // Bottom spacing
               const SliverToBoxAdapter(
                 child: SizedBox(height: 100),
               ),
@@ -154,155 +127,157 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(20),
-      child: Row(
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary.withOpacity(0.1),
-              border: Border.all(color: AppColors.primary, width: 2),
-            ),
-            child: _currentUser?.photoUrl != null
-                ? ClipOval(
-              child: Image.network(
-                _currentUser!.photoUrl!,
-                fit: BoxFit.cover,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _getGreeting(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _currentUser?.fullName ?? 'User',
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            )
-                : const Icon(
-              Icons.person_rounded,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Greeting
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getGreeting(),
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  _currentUser?.fullName ?? 'User',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-
-          // Notification Icon
-          IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Notifications coming soon!',
-                    style: GoogleFonts.poppins(),
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.notifications_outlined),
-            color: AppColors.textPrimary,
+              // Profile Picture
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.white,
+                backgroundImage: _currentUser?.photoUrl != null
+                    ? NetworkImage(_currentUser!.photoUrl!)
+                    : null,
+                child: _currentUser?.photoUrl == null
+                    ? const Icon(
+                  Icons.person,
+                  size: 30,
+                  color: AppColors.primary,
+                )
+                    : null,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildQuickStats() {
+  Widget _buildQuickStats(
+      LostItemViewModel lostVM,
+      FoundItemViewModel foundVM,
+      ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildStatCard(
+              title: 'Lost Items',
+              count: lostVM.lostItems.length.toString(),
+              icon: Icons.search_off_rounded,
+              color: AppColors.error,
+            ),
           ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildStatCard(
+              title: 'Found Items',
+              count: foundVM.foundItems.length.toString(),
+              icon: Icons.find_in_page_rounded,
+              color: AppColors.success,
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _buildStatItem(
-                icon: Icons.star_rounded,
-                label: 'Points',
-                value: '${_currentUser?.points ?? 0}',
-              ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildStatCard(
+              title: 'My Points',
+              count: _currentUser?.points.toString() ?? '0',
+              icon: Icons.star_rounded,
+              color: AppColors.warning,
             ),
-            Container(
-              width: 1,
-              height: 40,
-              color: Colors.white.withOpacity(0.3),
-            ),
-            Expanded(
-              child: _buildStatItem(
-                icon: Icons.emoji_events_rounded,
-                label: 'Badges',
-                value: '${_currentUser?.badges.length ?? 0}',
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStatItem({
+  Widget _buildStatCard({
+    required String title,
+    required String count,
     required IconData icon,
-    required String label,
-    required String value,
+    required Color color,
   }) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.white, size: 28),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: GoogleFonts.poppins(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: Colors.white.withOpacity(0.9),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 24),
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            count,
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildQuickActions() {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -314,13 +289,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: _buildActionCard(
-                  icon: Icons.search_off_rounded,
-                  label: 'Report Lost',
+                  title: 'Report Lost',
+                  icon: Icons.add_alert_rounded,
                   color: AppColors.error,
                   onTap: () {
                     Navigator.pushNamed(context, '/report_lost');
@@ -330,8 +305,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildActionCard(
-                  icon: Icons.check_circle_outline_rounded,
-                  label: 'Report Found',
+                  title: 'Report Found',
+                  icon: Icons.add_location_rounded,
                   color: AppColors.success,
                   onTap: () {
                     Navigator.pushNamed(context, '/report_found');
@@ -346,8 +321,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildActionCard({
+    required String title,
     required IconData icon,
-    required String label,
     required Color color,
     required VoidCallback onTap,
   }) {
@@ -355,18 +330,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(
+            color: color.withOpacity(0.3),
+          ),
         ),
         child: Column(
           children: [
             Icon(icon, color: color, size: 32),
             const SizedBox(height: 8),
             Text(
-              label,
+              title,
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -380,223 +357,198 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildRecentLostItems(List<LostItemModel> items) {
-    if (items.isEmpty) {
-      return _buildEmptySection('No recent lost items');
-    }
+  Widget _buildRecentLostItems(LostItemViewModel viewModel) {
+    final recentItems = viewModel.lostItems.take(3).toList();
 
-    return SizedBox(
-      height: 200,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: items.take(5).length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return _buildLostItemCard(item);
-        },
-      ),
-    );
-  }
-
-  Widget _buildRecentFoundItems(List<FoundItemModel> items) {
-    if (items.isEmpty) {
-      return _buildEmptySection('No recent found items');
-    }
-
-    return SizedBox(
-      height: 200,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: items.take(5).length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return _buildFoundItemCard(item);
-        },
-      ),
-    );
-  }
-
-  Widget _buildLostItemCard(LostItemModel item) {
-    return Container(
-      width: 150,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: item.imageUrls.isNotEmpty
-                ? CachedNetworkImage(
-              imageUrl: item.imageUrls.first,
-              height: 100,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            )
-                : Container(
-              height: 100,
-              color: Colors.grey[200],
-              child: const Icon(Icons.image_not_supported),
+    if (recentItems.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Center(
+          child: Text(
+            'No lost items yet',
+            style: GoogleFonts.poppins(
+              color: AppColors.textSecondary,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_rounded,
-                      size: 12,
-                      color: AppColors.error,
-                    ),
-                    const SizedBox(width: 2),
-                    Expanded(
-                      child: Text(
-                        item.locationName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: AppColors.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFoundItemCard(FoundItemModel item) {
-    return Container(
-      width: 150,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: item.imageUrls.isNotEmpty
-                ? CachedNetworkImage(
-              imageUrl: item.imageUrls.first,
-              height: 100,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            )
-                : Container(
-              height: 100,
-              color: Colors.grey[200],
-              child: const Icon(Icons.image_not_supported),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_rounded,
-                      size: 12,
-                      color: AppColors.success,
-                    ),
-                    const SizedBox(width: 2),
-                    Expanded(
-                      child: Text(
-                        item.locationName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: AppColors.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptySection(String message) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: Center(
-        child: Text(
-          message,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: AppColors.textSecondary,
           ),
         ),
-      ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Recent Lost Items',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  // Navigate to lost items tab
+                  Navigator.pushNamed(context, '/lost_items');
+                },
+                child: Text(
+                  'See All',
+                  style: GoogleFonts.poppins(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 140,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: recentItems.length,
+            itemBuilder: (context, index) {
+              final item = recentItems[index];
+              return _buildItemCard(item: item);
+            },
+          ),
+        ),
+      ],
     );
   }
 
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) {
-      return 'Good Morning';
-    } else if (hour < 17) {
-      return 'Good Afternoon';
-    } else {
-      return 'Good Evening';
+  Widget _buildRecentFoundItems(FoundItemViewModel viewModel) {
+    final recentItems = viewModel.foundItems.take(3).toList();
+
+    if (recentItems.isEmpty) {
+      return const SizedBox.shrink();
     }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Recent Found Items',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/found_items');
+                },
+                child: Text(
+                  'See All',
+                  style: GoogleFonts.poppins(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 140,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: recentItems.length,
+            itemBuilder: (context, index) {
+              final item = recentItems[index];
+              return _buildItemCard(item: item);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemCard({required dynamic item}) {
+    return Container(
+      width: 150,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: item.imageUrls != null && item.imageUrls.isNotEmpty
+                ? CachedNetworkImage(
+              imageUrl: item.imageUrls.first,
+              height: 90,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(
+                height: 90,
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              errorWidget: (context, url, error) => Container(
+                height: 90,
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.image, size: 40),
+              ),
+            )
+                : Container(
+              height: 90,
+              color: Colors.grey.shade200,
+              child: const Icon(Icons.image, size: 40),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title ?? 'Unknown',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.category ?? 'Other',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
