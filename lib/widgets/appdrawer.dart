@@ -3,11 +3,45 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../utils/colors.dart';
+import '../utils/routes.dart';  // ✅ IMPORT ROUTES
 import '../services/auth_services.dart';
 import '../viewmodel/auth_view_model.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
   const AppDrawer({Key? key}) : super(key: key);
+
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  bool _isAdmin = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAdminStatus();
+  }
+
+  Future<void> _checkAdminStatus() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    if (user != null) {
+      final userData = await authService.getUserData(user.uid);
+      if (mounted) {
+        setState(() {
+          _isAdmin = userData?.isAdmin ?? false;
+          _isLoading = false;
+        });
+      }
+    } else {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,29 +160,7 @@ class AppDrawer extends StatelessWidget {
                       title: 'Home',
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.pushReplacementNamed(context, '/home');
-                      },
-                    ),
-
-                    // My Lost Items
-                    _buildDrawerItem(
-                      context: context,
-                      icon: Icons.search_off_rounded,
-                      title: 'My Lost Items',
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.pushNamed(context, '/my_lost_items');
-                      },
-                    ),
-
-                    // My Found Items
-                    _buildDrawerItem(
-                      context: context,
-                      icon: Icons.find_in_page_rounded,
-                      title: 'My Found Items',
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.pushNamed(context, '/my_found_items');
+                        Navigator.pushReplacementNamed(context, AppRoutes.home);
                       },
                     ),
 
@@ -159,7 +171,7 @@ class AppDrawer extends StatelessWidget {
                       title: 'Report Lost Item',
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.pushNamed(context, '/report_lost');
+                        Navigator.pushNamed(context, AppRoutes.reportLost);
                       },
                     ),
 
@@ -170,9 +182,36 @@ class AppDrawer extends StatelessWidget {
                       title: 'Report Found Item',
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.pushNamed(context, '/report_found');
+                        Navigator.pushNamed(context, AppRoutes.reportFound);
                       },
                     ),
+
+                    const Divider(color: Colors.white24, height: 24),
+
+                    // ✅ CHAT WITH ADMIN (FOR ALL USERS)
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.chat,
+                      title: 'Chat with Support',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, AppRoutes.chatWithAdmin);  // ✅ CORRECT ROUTE
+                      },
+                    ),
+
+                    // ✅ ADMIN PANEL (ONLY IF USER IS ADMIN)
+                    if (!_isLoading && _isAdmin) ...[
+                      const Divider(color: Colors.white24, height: 24),
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.admin_panel_settings,
+                        title: 'Admin Panel',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, AppRoutes.adminDashboard);
+                        },
+                      ),
+                    ],
 
                     const Divider(color: Colors.white24, height: 24),
 
@@ -183,7 +222,7 @@ class AppDrawer extends StatelessWidget {
                       title: 'Profile',
                       onTap: () {
                         Navigator.pop(context);
-                        // The profile is already in bottom nav, so just close drawer
+                        // Profile is already in bottom nav
                       },
                     ),
 
@@ -194,7 +233,7 @@ class AppDrawer extends StatelessWidget {
                       title: 'Settings',
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.pushNamed(context, '/settings');
+                        // Navigate to settings
                       },
                     ),
 
@@ -205,7 +244,7 @@ class AppDrawer extends StatelessWidget {
                       title: 'Help & Support',
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.pushNamed(context, '/help');
+                        // Navigate to help
                       },
                     ),
 
@@ -300,7 +339,6 @@ class AppDrawer extends StatelessWidget {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
-    // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -339,7 +377,7 @@ class AppDrawer extends StatelessWidget {
       await viewModel.logout();
 
       if (context.mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
       }
     }
   }

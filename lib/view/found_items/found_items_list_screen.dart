@@ -383,7 +383,7 @@ class _FoundItemsListScreenState extends State<FoundItemsListScreen> {
   }
 }
 
-// Placeholder for FoundItemDetailScreen
+// // Placeholder for FoundItemDetailScreen
 class FoundItemDetailScreen extends StatelessWidget {
   final FoundItemModel item;
 

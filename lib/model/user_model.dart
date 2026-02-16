@@ -1,3 +1,4 @@
+// lib/model/user_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -11,6 +12,8 @@ class UserModel {
   final List<String> badges;
   final DateTime createdAt;
   final GeoPoint? location;
+  final bool isAdmin;
+  final bool isBlocked;
 
   UserModel({
     required this.uid,
@@ -22,9 +25,10 @@ class UserModel {
     this.badges = const [],
     required this.createdAt,
     this.location,
+    this.isAdmin = false,
+    this.isBlocked = false,
   });
 
-  // Factory constructor from Firestore document
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return UserModel(
@@ -37,24 +41,26 @@ class UserModel {
       badges: List<String>.from(data['badges'] ?? []),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       location: data['location'],
+      isAdmin: data['isAdmin'] ?? false,
+      isBlocked: data['isBlocked'] ?? false,
     );
   }
 
-  // Factory constructor from Firebase User (for quick creation)
-  factory UserModel.fromFirebaseAuthUser(User firebaseUser) {
+  // ✅ ADDED: Create from Firebase Auth User
+  factory UserModel.fromFirebaseAuthUser(User user) {
     return UserModel(
-      uid: firebaseUser.uid,
-      email: firebaseUser.email ?? '',
-      fullName: firebaseUser.displayName ?? 'User',
-      phoneNumber: firebaseUser.phoneNumber,
-      photoUrl: firebaseUser.photoURL,
+      uid: user.uid,
+      email: user.email ?? '',
+      fullName: user.displayName ?? 'User',
+      photoUrl: user.photoURL,
+      createdAt: DateTime.now(),
       points: 0,
       badges: [],
-      createdAt: DateTime.now(),
+      isAdmin: false,
+      isBlocked: false,
     );
   }
 
-  // Convert to JSON for Firestore
   Map<String, dynamic> toJson() {
     return {
       'uid': uid,
@@ -66,10 +72,11 @@ class UserModel {
       'badges': badges,
       'createdAt': Timestamp.fromDate(createdAt),
       'location': location,
+      'isAdmin': isAdmin,
+      'isBlocked': isBlocked,
     };
   }
 
-  // Copy with method for easy updates
   UserModel copyWith({
     String? uid,
     String? email,
@@ -80,6 +87,8 @@ class UserModel {
     List<String>? badges,
     DateTime? createdAt,
     GeoPoint? location,
+    bool? isAdmin,
+    bool? isBlocked,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -91,6 +100,8 @@ class UserModel {
       badges: badges ?? this.badges,
       createdAt: createdAt ?? this.createdAt,
       location: location ?? this.location,
+      isAdmin: isAdmin ?? this.isAdmin,
+      isBlocked: isBlocked ?? this.isBlocked,
     );
   }
 }

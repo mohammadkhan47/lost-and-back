@@ -1,5 +1,10 @@
 // lib/utils/routes.dart
 import 'package:flutter/material.dart';
+import '../view/admin/admin_chat_box.dart';
+import '../view/admin/admin_dash_screen.dart';
+import '../view/admin/admin_item_screen.dart';
+import '../view/admin/admin_user_screen.dart';
+import '../view/chat/chat_admin_screen.dart';
 import '../view/found_items/report_found_item.dart';
 import '../view/home/homeview.dart';
 import '../view/lost_items/report_items_screen.dart';
@@ -22,6 +27,13 @@ class AppRoutes {
   static const String reportFound = '/report_found';
   static const String myLostItems = '/my_lost_items';
   static const String myFoundItems = '/my_found_items';
+  static const String adminDashboard = '/admin_dashboard';
+  static const String adminUsers = '/admin_users';
+  static const String adminLostItems = '/admin_lost_items';
+  static const String adminFoundItems = '/admin_found_items';
+  static const String adminChats = '/admin_chats';
+  static const String chatWithAdmin = '/chat_with_admin';  // ✅ FIXED: lowercase
+
 
   // Route generator
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -49,6 +61,24 @@ class AppRoutes {
 
       case reportFound:
         return MaterialPageRoute(builder: (_) => const ReportFoundItemScreen());
+
+      case adminDashboard:
+        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
+
+      case adminUsers:
+        return MaterialPageRoute(builder: (_) => const AdminUsersScreen());
+
+      case adminLostItems:
+        return MaterialPageRoute(builder: (_) => const AdminItemsScreen(isLostItems: true));
+
+      case adminFoundItems:
+        return MaterialPageRoute(builder: (_) => const AdminItemsScreen(isLostItems: false));
+
+      case adminChats:
+        return MaterialPageRoute(builder: (_) => const AdminChatInboxScreen());
+
+      case chatWithAdmin:
+        return MaterialPageRoute(builder: (_) => const ChatWithAdminScreen());
 
     // Add more routes as needed
     // case myLostItems:
@@ -78,5 +108,11 @@ class AppRoutes {
     home: (context) => const HomeScreen(),
     reportLost: (context) => const ReportLostItemScreen(),
     reportFound: (context) => const ReportFoundItemScreen(),
+    adminDashboard: (context) => const AdminDashboardScreen(),
+    adminUsers: (context) => const AdminUsersScreen(),
+    adminLostItems: (context) => const AdminItemsScreen(isLostItems: true),
+    adminFoundItems: (context) => const AdminItemsScreen(isLostItems: false),
+    adminChats: (context) => const AdminChatInboxScreen(),
+    chatWithAdmin: (context) => const ChatWithAdminScreen(),  // ✅ FIXED
   };
 }

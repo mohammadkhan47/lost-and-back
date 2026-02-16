@@ -41,7 +41,11 @@ dependencies:
   image_picker: ^1.2.1
   more: ^4.7.0
   geolocator: ^14.0.2
+  google_maps_flutter: ^2.14.2
+  geocoding: ^4.0.0
   shimmer: ^3.0.0
+  cloudinary_public: ^0.23.1
+  flutter_image_compress: ^2.4.0
   shared_preferences: ^2.5.4
   notification_listener_service: ^0.3.5
   cached_network_image: ^3.4.1
@@ -76,6 +80,7 @@ flutter:
   assets:
     - assets/images/logo.png
     - assets/images/splashlogo.png
+    - assets/images/google.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
